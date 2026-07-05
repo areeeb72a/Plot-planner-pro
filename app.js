@@ -673,6 +673,9 @@ const draw = () => {
             } else if (marlaSize >= 3) {
                 setbackFront = 5;
             }
+        } else if (state.authority === 'gulf') {
+            setbackFront = 16.4; // 5 meters
+            setbackRear = 10;    // 3 meters
         }
         
         let factor = 1;
@@ -2484,6 +2487,8 @@ const REQS_CONFIG = [
     { id: 'kitchen', en: 'Kitchen', ur: 'کچن', type: 'count', def: 1 },
     { id: 'draw', en: 'Drawing / Guest Room', ur: 'ڈرائنگ روم', type: 'count', def: 1 },
     { id: 'lounge', en: 'TV Lounge / Living', ur: 'ٹی وی لاؤنج', type: 'count', def: 1 },
+    { id: 'majlis_men', en: "Men's Majlis (Guest)", ur: 'مجلس الرجال', type: 'count', def: 0 },
+    { id: 'majlis_women', en: "Women's Majlis (Ladies)", ur: 'مجلس النساء', type: 'count', def: 0 },
     { id: 'porch', en: 'Porch / Car Parking', ur: 'پورچ / گاڑی', type: 'opt', opts: ['Small', 'Large'], def: 'Small' },
     { id: 'stair', en: 'Staircase', ur: 'سیڑھیاں', type: 'opt', opts: ['Inside', 'Outside'], def: 'Inside' },
     { id: 'store', en: 'Store Room', ur: 'اسٹور روم', type: 'count', def: 1 },
@@ -2694,6 +2699,14 @@ const generateRoomsList = (floorIdx) => {
     for (let i = 0; i < getQty('lounge'); i++) {
         const sizeInfo = getCustomSize('lounge', 1.4);
         addRoom('lounge', 'TV Lounge', sizeInfo.w, sizeInfo.lbl);
+    }
+    for (let i = 0; i < getQty('majlis_men'); i++) {
+        const sizeInfo = getCustomSize('majlis_men', 1.3);
+        addRoom('majlis_men', "Men's Majlis", sizeInfo.w, sizeInfo.lbl);
+    }
+    for (let i = 0; i < getQty('majlis_women'); i++) {
+        const sizeInfo = getCustomSize('majlis_women', 1.2);
+        addRoom('majlis_women', "Women's Majlis", sizeInfo.w, sizeInfo.lbl);
     }
     for (let i = 0; i < getQty('kitchen'); i++) {
         const sizeInfo = getCustomSize('kitchen', 0.8);
@@ -3015,6 +3028,8 @@ const ROOM_LABELS = {
     kitchen: ['Kitchen', 'کچن'],
     draw: ['Drawing Room', 'ڈرائنگ روم'],
     lounge: ['TV Lounge', 'ٹی وی لاؤنج'],
+    majlis_men: ["Men's Majlis", 'مجلس الرجال'],
+    majlis_women: ["Women's Majlis", 'مجلس النساء'],
     store: ['Store Room', 'اسٹور'],
     laundry: ['Laundry', 'لانڈری'],
     stair: ['Staircase', 'سیڑھیاں'],
@@ -3598,6 +3613,8 @@ const RCOL = {
     kitchen: 'rgba(249, 115, 22, 0.08)',
     draw: 'rgba(168, 85, 247, 0.07)',
     lounge: 'rgba(59, 130, 246, 0.04)',
+    majlis_men: 'rgba(168, 85, 247, 0.07)',
+    majlis_women: 'rgba(236, 72, 153, 0.06)',
     store: 'rgba(100, 116, 139, 0.08)',
     laundry: 'rgba(14, 165, 233, 0.05)',
     stair: 'rgba(234, 179, 8, 0.05)',
