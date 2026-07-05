@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Planner Pro - 2D Drafting Board</title>
+    <!-- Google Fonts for professional typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Main Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M12 2L2 22h20L12 2zm0 3.99L18.66 19H5.34L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h1>Plot Planner Pro <span class="badge">v1.0 - Core</span></h1>
+            </div>
+            <div class="header-actions">
+                <!-- Role Selector -->
+                <div class="collab-selector-container">
+                    <label for="collab-role-select">Active Role:</label>
+                    <select id="collab-role-select" class="form-control header-select">
+                        <option value="owner" selected>👤 Admin / Owner</option>
+                        <option value="architect">📐 Lead Architect</option>
+                        <option value="engineer">⚡ Structural Engineer</option>
+                        <option value="client">👥 Client</option>
+                    </select>
+                </div>
+                
+                <!-- Action Buttons -->
+                <button id="btn-open-bom" class="header-btn primary-btn" type="button" title="Open Bill of Quantities & Material Costs Sheet">
+                    📊 BOM & Costs
+                </button>
+
+                <button id="btn-open-3d" class="header-btn primary-btn" type="button" title="Toggle interactive 3D view of generated structures">
+                    🧊 3D View
+                </button>
+
+                <button id="btn-export-project" class="header-btn primary-btn" style="background: linear-gradient(135deg, #c99327, #a3751a); border-color: #f0b444; color: white;" type="button" title="Export project data to JSON">
+                    💾 Export Project
+                </button>
+                
+                <button id="btn-open-help" class="header-btn outline-btn" type="button" title="Open slide presentation and printable user guide">
+                    📖 Help & Guide
+                </button>
+
+                <div class="api-status">
+                    <span class="status-dot active"></span>
+                    <span class="status-text">Drafting Engine Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <div class="app-body">
+            <!-- Left Sidebar - Tools -->
+            <aside class="sidebar-left">
+                <div class="sidebar-section-title">Drafting Tools</div>
+                <div class="tool-buttons">
+                    <button id="tool-select" class="tool-btn active" title="Select & Move elements">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M7 2l12 11.2-5.8.8 4.8 6.4-1.6 1.2-4.8-6.4-3.8 3.6V2z"/>
+                        </svg>
+                        <span>Select / Move</span>
+                    </button>
+                    <button id="tool-line" class="tool-btn" title="Draw straight lines">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        <span>Draw Line</span>
+                    </button>
+                    <button id="tool-measure" class="tool-btn" title="Measure area (Closed loops)">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/>
+                        </svg>
+                        <span>Measure Area</span>
+                    </button>
+                    <button id="tool-undo" class="tool-btn" title="Undo last action (Ctrl+Z)">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 7v6h6M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                        </svg>
+                        <span>Undo Tool</span>
+                    </button>
+                    <button id="tool-clear" class="tool-btn danger-btn" title="Clear all lines from the canvas">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                        <span>Clear Canvas</span>
+                    </button>
+                    <button id="tool-import" class="tool-btn" title="Import JSON, SVG, DXF, STL, OBJ, or image files">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-dasharray="" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                        <span>Import File</span>
+                    </button>
+                    <input type="file" id="file-import-input" style="display:none;" accept=".json,.png,.jpg,.jpeg,.svg,.dxf,.obj,.stl">
+                </div>
+
+                <!-- Tracing Image Controls Panel -->
+                <div class="trace-ctrl-panel" id="trace-ctrl-panel">
+                    <div class="tc-header">
+                        <span>🖼️ Tracing Image</span>
+                        <button class="tc-remove" id="btn-trace-remove" type="button" title="Remove tracing image">✕</button>
+                    </div>
+                    <div class="tc-row">
+                        <label>Opacity: <span id="trace-opacity-val">55%</span></label>
+                        <input type="range" id="trace-opacity-slider" min="10" max="100" value="55">
+                    </div>
+                    <div class="tc-row">
+                        <label>Scale: <span id="trace-scale-val">100%</span></label>
+                        <input type="range" id="trace-scale-slider" min="20" max="250" value="100">
+                    </div>
+                    <label class="tc-lock-label">
+                        <input type="checkbox" id="trace-lock-checkbox"> Lock Image Position
+                    </label>
+                </div>
+
+                <!-- Field Survey Inventory -->
+                <div class="sidebar-section-title separator-top-sidebar" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">Field Survey Inventory</div>
+                <div class="survey-checklist">
+                    <!-- Road Width -->
+                    <div class="form-group-sidebar">
+                        <label for="survey-road-width">Access Road Width (ft)</label>
+                        <input type="number" id="survey-road-width" class="form-control-sidebar" placeholder="e.g. 30" min="0" value="30">
+                    </div>
+
+                    <!-- Soil Condition -->
+                    <div class="form-group-sidebar">
+                        <label for="survey-soil">Soil Condition</label>
+                        <select id="survey-soil" class="form-control-sidebar">
+                            <option value="clay" selected>Clay (Standard)</option>
+                            <option value="sandy">Sandy (Loose)</option>
+                            <option value="rocky">Rocky (Hard)</option>
+                        </select>
+                    </div>
+                    <!-- Neighbor Contexts ( اطراف ) -->
+                    <div class="form-group-sidebar">
+                        <label for="survey-neighbor-front">Front Facade / سامنے</label>
+                        <select id="survey-neighbor-front" class="form-control-sidebar">
+                            <option value="road" selected>🛣 Road / روڈ</option>
+                            <option value="street">🚶 Street / گلی</option>
+                            <option value="empty">⬜ Empty Plot / خالی</option>
+                            <option value="1-floor">🏠 1-Floor House</option>
+                            <option value="2-floor">🏢 2-Floor House</option>
+                            <option value="park">🌳 Park / پارک</option>
+                            <option value="commercial">🏪 Shops / دکانیں</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sidebar">
+                        <label for="survey-neighbor-left">Left Neighbor / بائیں</label>
+                        <select id="survey-neighbor-left" class="form-control-sidebar">
+                            <option value="empty">⬜ Empty Plot / خالی</option>
+                            <option value="1-floor" selected>🏠 1-Floor House</option>
+                            <option value="2-floor">🏢 2-Floor House</option>
+                            <option value="road">🛣 Road / روڈ</option>
+                            <option value="street">🚶 Street / گلی</option>
+                            <option value="park">🌳 Park / پارک</option>
+                            <option value="commercial">🏪 Shops / دکانیں</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sidebar">
+                        <label for="survey-neighbor-right">Right Neighbor / دائیں</label>
+                        <select id="survey-neighbor-right" class="form-control-sidebar">
+                            <option value="empty" selected>⬜ Empty Plot / خالی</option>
+                            <option value="1-floor">🏠 1-Floor House</option>
+                            <option value="2-floor">🏢 2-Floor House</option>
+                            <option value="road">🛣 Road / روڈ</option>
+                            <option value="street">🚶 Street / گلی</option>
+                            <option value="park">🌳 Park / پارک</option>
+                            <option value="commercial">🏪 Shops / دکانیں</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sidebar">
+                        <label for="survey-neighbor-rear">Rear Neighbor / پیچھے</label>
+                        <select id="survey-neighbor-rear" class="form-control-sidebar">
+                            <option value="empty">⬜ Empty Plot / خالی</option>
+                            <option value="1-floor">🏠 1-Floor House</option>
+                            <option value="2-floor" selected>🏢 2-Floor House</option>
+                            <option value="road">🛣 Road / روڈ</option>
+                            <option value="street">🚶 Street / گلی</option>
+                            <option value="park">🌳 Park / پارک</option>
+                            <option value="commercial">🏪 Shops / دکانیں</option>
+                        </select>
+                    </div>
+
+                    <!-- Utility Pins Dropper -->
+                    <label class="sidebar-label-small">Place Geo-tagged Pins</label>
+                    <div class="pin-drop-buttons">
+                        <button id="btn-pin-water" class="pin-btn pin-water" type="button" title="Click then click on canvas to drop Water Connection pin">
+                            💧 Water
+                        </button>
+                        <button id="btn-pin-gas" class="pin-btn pin-gas" type="button" title="Click then click on canvas to drop Gas Meter pin">
+                            🔥 Gas
+                        </button>
+                        <button id="btn-pin-electric" class="pin-btn pin-electric" type="button" title="Click then click on canvas to drop Electric Pole pin">
+                            ⚡ Power
+                        </button>
+                    </div>
+                    <div id="pin-drop-status" class="pin-status-text">Active: Click canvas to drop pin</div>
+                </div>
+
+                <div class="sidebar-info-card">
+                    <h4>Drawing Shortcuts</h4>
+                    <ul>
+                        <li><kbd>Esc</kbd> Cancel active line</li>
+                        <li><kbd>Ctrl + Z</kbd> Undo last line</li>
+                        <li><kbd>Hold Shift</kbd> Orthogonal lock (90°)</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Center Workspace - Drawing Board -->
+            <main class="canvas-workspace" style="position: relative;">
+                <!-- View switcher tabs -->
+                <div class="board-tabs" id="board-tabs">
+                    <button class="bt-btn on" data-view="board" type="button">📐 Board</button>
+                    <button class="bt-btn" data-view="floor" type="button">🏠 Floor Plan</button>
+                    <span class="floor-tabs" id="floor-tabs-container"></span>
+                </div>
+                
+                <div class="canvas-container" id="canvas-container" style="position: relative; width: 100%; height: 100%;">
+                    <canvas id="drafting-canvas"></canvas>
+                </div>
+
+                <!-- 3D Viewport overlay -->
+                <div class="view3d" id="view3d">
+                    <div class="v3d-bar">
+                        <span class="v3d-title">🧊 3D View</span>
+                        <div class="v3d-ctrls">
+                            <span id="v3d-floors-container" style="display: none; gap: 4px; margin-right: 8px;"></span>
+                            <button class="v3d-btn on" id="v3d-btn-orbit" type="button" title="Rotate and Zoom">🔄 Orbit</button>
+                            <button class="v3d-btn" id="v3d-btn-walk" type="button" title="Walk Inside (WASD)">🚶 Walk</button>
+                            <button class="v3d-btn" id="v3d-btn-sun" type="button" title="Sync with Sun Path simulator">☀️ Sun</button>
+                            <button class="v3d-btn" id="v3d-btn-roof" type="button" title="Toggle Roof View">🏠 Roof</button>
+                            <button class="v3d-btn" id="v3d-btn-png" type="button" title="Save high-resolution snapshot">📷 PNG</button>
+                            <button class="v3d-btn close" id="v3d-btn-close" type="button">✕ 2D</button>
+                        </div>
+                    </div>
+                    <div class="v3d-hint" id="v3d-hint">Drag mouse to rotate · Scroll to zoom · Click Walk to traverse inside</div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar - Settings & Configurations -->
+            <aside class="sidebar-right">
+                <!-- Stepper Stages Navigation -->
+                <div class="sidebar-stepper">
+                    <button class="step-btn on" data-step="1" type="button">
+                        <span class="step-num">1</span> Plot Size
+                    </button>
+                    <button class="step-btn" data-step="2" type="button">
+                        <span class="step-num">2</span> Requirements
+                    </button>
+                    <button class="step-btn" data-step="3" type="button">
+                        <span class="step-num">3</span> Rules & Stats
+                    </button>
+                </div>
+
+                <!-- STEP PANEL 1: PLOT SIZE (Active/On by default) -->
+                <div class="step-panel on" data-step="1">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">Canvas Settings</h3>
+                    
+                    <!-- Scale Selection -->
+                    <div class="form-group">
+                        <label for="scale-select">Drafting Scale</label>
+                        <select id="scale-select" class="form-control">
+                            <option value="1:100" selected>1:100 (Standard Metric)</option>
+                            <option value="1:50">1:50 (Detailed Detail)</option>
+                            <option value="1:200">1:200 (Site Layout)</option>
+                        </select>
+                        <small class="form-help">Adjusts coordinates translation & line measurements.</small>
+                    </div>
+
+                    <!-- Unit Selection -->
+                    <div class="form-group">
+                        <label for="unit-select">Measurement Unit</label>
+                        <select id="unit-select" class="form-control">
+                            <option value="feet" selected>Feet (Imperial - ft)</option>
+                            <option value="meters">Meters (Metric - m)</option>
+                            <option value="yards">Yards (Karachi Yard - sq yds / yds)</option>
+                        </select>
+                    </div>
+
+                    <!-- Snap Settings -->
+                    <div class="form-group checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="snap-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label-text">Snap to Technical Grid</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grid-size">Grid Step Size</label>
+                        <div class="slider-container">
+                            <input type="range" id="grid-size" min="10" max="100" step="5" value="25">
+                            <span id="grid-size-val">25px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Properties Panel -->
+                <div class="sidebar-section separator-top">
+                    <h3 class="section-title">Line Styles</h3>
+                    <div class="form-group">
+                        <label for="line-weight">Line Weight</label>
+                        <select id="line-weight" class="form-control">
+                            <option value="1">0.18 mm (Thin / Inner Walls)</option>
+                            <option value="2" selected>0.35 mm (Medium / standard)</option>
+                            <option value="4">0.70 mm (Thick / Boundary)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="line-color">Line Color</label>
+                        <div class="color-picker-grid">
+                            <button class="color-dot active" data-color="#1e40af" style="background-color: #1e40af;" title="Blueprint Blue"></button>
+                            <button class="color-dot" data-color="#0284c7" style="background-color: #0284c7;" title="Sky Blue"></button>
+                            <button class="color-dot" data-color="#0f172a" style="background-color: #0f172a;" title="Slate Navy"></button>
+                            <button class="color-dot" data-color="#dc2626" style="background-color: #dc2626;" title="Construction Red"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Irregular Plot Math Engine -->
+                <div class="sidebar-section separator-top">
+                    <div class="section-title-container">
+                        <h3 class="section-title">Irregular Plot Math Engine</h3>
+                        <div class="info-tooltip-container">
+                            <span class="info-icon">
+                                <svg viewBox="0 0 24 24" width="14" height="14">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="tooltip-text">Triangulation (Diagonal E provided): Calculates two triangles using Heron's Formula. Fallback (No Diagonal): Calculates average length x average width.</span>
+                        </div>
+                    </div>
+
+                    <div class="math-engine-grid">
+                        <div class="form-group">
+                            <label for="plot-side-a">Side A (Top)</label>
+                            <input type="number" id="plot-side-a" class="form-control math-input" placeholder="ft / m" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="plot-side-b">Side B (Right)</label>
+                            <input type="number" id="plot-side-b" class="form-control math-input" placeholder="ft / m" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="plot-side-c">Side C (Bottom)</label>
+                            <input type="number" id="plot-side-c" class="form-control math-input" placeholder="ft / m" min="0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="plot-side-d">Side D (Left)</label>
+                            <input type="number" id="plot-side-d" class="form-control math-input" placeholder="ft / m" min="0" step="any">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="plot-diag-e">Diagonal E (Corner to Corner)</label>
+                        <input type="number" id="plot-diag-e" class="form-control math-input" placeholder="Optional Diagonal E" min="0" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="marla-select">Pakistani Marla Standard</label>
+                        <select id="marla-select" class="form-control">
+                            <option value="272.25" selected>Rural / Traditional (272.25 sq ft)</option>
+                            <option value="225">Lahore / Urban (225 sq ft)</option>
+                            <option value="250">Commercial / Society (250 sq ft)</option>
+                        </select>
+                    </div>
+
+                    <!-- Output Panel -->
+                    <div class="math-output-card">
+                        <!-- Warning/Indicator Banner -->
+                        <div id="math-status-banner" class="status-banner info">
+                            <span id="math-status-text">Enter plot dimensions to calculate.</span>
+                        </div>
+                        
+                        <div class="output-stats">
+                            <div class="output-row">
+                                <span class="output-label">Area (Square Feet):</span>
+                                <span id="math-area-sqft" class="output-val">0.00 sq ft</span>
+                            </div>
+                            <div class="output-row">
+                                <span class="output-label">Area (Square Meters):</span>
+                                <span id="math-area-sqm" class="output-val">0.00 m²</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Pakistani Land Conversion Output -->
+                        <div class="revenue-section">
+                            <div class="revenue-title">پاکستانی ریونیو یونٹس (Land Units)</div>
+                            <div class="urdu-val" id="urdu-kanal-marla">0 Kanal, 0 Marla, 0 Sarsahi</div>
+                            <div class="urdu-subval" id="urdu-marla-sarsahi">(or 0 Marlas, 0 Sarsahi)</div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End of Step Panel 1 -->
+
+            <!-- STEP PANEL 2: REQUIREMENTS & FLOOR PLAN -->
+            <div class="step-panel" data-step="2">
+                <div class="sidebar-section">
+                    <h3 class="section-title">Floors & Layout</h3>
+                    
+                    <div class="form-group">
+                        <label>Number of Floors</label>
+                        <div class="preset-buttons-grid" id="floor-select-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                            <button type="button" class="preset-btn active" data-v="1" style="padding: 8px 4px; font-size: 0.8rem;">Single</button>
+                            <button type="button" class="preset-btn" data-v="2" style="padding: 8px 4px; font-size: 0.8rem;">Double</button>
+                            <button type="button" class="preset-btn" data-v="3" style="padding: 8px 4px; font-size: 0.8rem;">Triple</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="checkbox-corridor" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label-text">Central Corridor (طرقہ تقسیم)</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-section separator-top">
+                    <h3 class="section-title">Room Requirements</h3>
+                    <p class="form-help" style="margin-bottom: 10px;">Select room types, counts per floor, and custom sizes (leave blank for auto size).</p>
+                    
+                    <div class="req-grid" id="requirements-list-container">
+                        <!-- Requirements rows will be generated dynamically by JS -->
+                    </div>
+
+                    <button id="btn-generate-floorplan" class="post-comment-btn" style="width: 100%; margin-top: 15px; background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue)); color: white; border: none; font-weight: 700; height: 42px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2);" type="button">
+                        ⚡ Generate Floor Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP PANEL 3: RULES, SIMULATION & STATS -->
+            <div class="step-panel" data-step="3">
+                <!-- Development Authority Rules -->
+                <div class="sidebar-section">
+                    <h3 class="section-title">Development Authority Rules</h3>
+                    
+                    <div class="form-group">
+                        <label for="rules-authority">Select Authority</label>
+                        <select id="rules-authority" class="form-control">
+                            <option value="lda" selected>LDA (Lahore)</option>
+                            <option value="cda">CDA (Islamabad)</option>
+                            <option value="ruda">RUDA (Ravi Urban)</option>
+                            <option value="sbca">SBCA (Karachi)</option>
+                            <option value="pda">PDA (Peshawar)</option>
+                            <option value="qda">QDA (Quetta)</option>
+                        </select>
+                    </div>
+
+                    <!-- CDA Cutting Presets (Show/Hide in JS based on authority) -->
+                    <div id="cda-presets-container" class="form-group" style="display: none;">
+                        <label>CDA Standard Plot Presets</label>
+                        <div class="preset-buttons-grid">
+                            <button id="preset-cda-8marla" class="preset-btn" type="button" title="Load 30x60 ft plot boundary">
+                                8 Marla (30x60 ft)
+                            </button>
+                            <button id="preset-cda-1kanal" class="preset-btn" type="button" title="Load 50x90 ft plot boundary">
+                                1 Kanal (50x90 ft)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Basement Checkbox -->
+                    <div class="form-group checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="rules-basement-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label-text">Basement Option Toggled</span>
+                    </div>
+
+                    <!-- Compliance Badges -->
+                    <div class="compliance-badge-container">
+                        <div id="badge-basement" class="compliance-badge warning-badge" style="display: none;">
+                            ⚠️ CDA Compliant Basement Check Required
+                        </div>
+                        <div id="badge-setback-status" class="compliance-badge info-badge">
+                            LDA 5-foot Front Setback Required
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geo-Energy Simulator -->
+                <div class="sidebar-section separator-top">
+                    <h3 class="section-title">Geo-Energy & Microclimate</h3>
+                    
+                    <!-- Plot Frontage Orientation Dropdown -->
+                    <div class="form-group">
+                        <label for="sim-orientation">Plot Facing Orientation</label>
+                        <select id="sim-orientation" class="form-control">
+                            <option value="north" selected>North (Faces Road)</option>
+                            <option value="east">East (Morning Sun)</option>
+                            <option value="south">South (High Winter Sun)</option>
+                            <option value="west">West (Afternoon Heat)</option>
+                        </select>
+                    </div>
+
+                    <!-- Time of Day Slider -->
+                    <div class="form-group">
+                        <label for="sim-time-slider">Time of Day (Sun Angle)</label>
+                        <div class="slider-container">
+                            <input type="range" id="sim-time-slider" min="6" max="18" step="0.5" value="12">
+                            <span id="sim-time-val">12:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Season Switch -->
+                    <div class="form-group checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sim-season-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label-text" id="sim-season-label">Season: Summer</span>
+                    </div>
+
+                    <!-- Simulator Overlays Checkboxes -->
+                    <div class="form-group">
+                        <label>Environmental Overlays</label>
+                        
+                        <div class="checkbox-group" style="padding: 2px 0;">
+                            <label class="toggle-switch" style="width: 38px; height: 20px;">
+                                <input type="checkbox" id="toggle-sun-path">
+                                <span class="slider" style="border-radius: 20px;"></span>
+                            </label>
+                            <span class="label-text" style="font-size: 0.8rem;">Solar Path & Shadows</span>
+                        </div>
+
+                        <div class="checkbox-group" style="padding: 2px 0;">
+                            <label class="toggle-switch" style="width: 38px; height: 20px;">
+                                <input type="checkbox" id="toggle-wind">
+                                <span class="slider" style="border-radius: 20px;"></span>
+                            </label>
+                            <span class="label-text" style="font-size: 0.8rem;">Animated Wind Vectors</span>
+                        </div>
+
+                        <div class="checkbox-group" style="padding: 2px 0;">
+                            <label class="toggle-switch" style="width: 38px; height: 20px;">
+                                <input type="checkbox" id="toggle-noise">
+                                <span class="slider" style="border-radius: 20px;"></span>
+                            </label>
+                            <span class="label-text" style="font-size: 0.8rem;">Sound Pollution Gradient</span>
+                        </div>
+                    </div>
+
+                    <!-- Passive Recommendation Text Output Card -->
+                    <div class="recommendations-card">
+                        <h4 class="recommendations-title">🌱 Passive Design Tips</h4>
+                        <p id="sim-recommendations" class="recommendations-text">Select an orientation and adjust the simulator controls to get dynamic recommendations.</p>
+                    </div>
+                </div>
+
+                <!-- Diagnostics / Statistics -->
+                <div class="sidebar-section separator-top">
+                    <h3 class="section-title">Drafting History</h3>
+                    <div class="stats-panel">
+                        <div class="stat-row">
+                            <span class="stat-label">Total Lines:</span>
+                            <span id="stat-lines-count" class="stat-val">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Estimated Perimeter:</span>
+                            <span id="stat-perimeter" class="stat-val">0.00 ft</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments & Approvals Section -->
+                <div class="sidebar-section separator-top">
+                    <h3 class="section-title">Comments & Approvals Log</h3>
+                    
+                    <div class="collab-comments-box">
+                        <div id="collab-comments-list" class="comments-list">
+                            <!-- JS will populate comments dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="collab-input-container">
+                        <textarea id="collab-comment-input" class="form-control comment-input" placeholder="Type annotation or comment..." rows="2"></textarea>
+                        <button id="btn-post-comment" class="post-comment-btn" type="button">Post Comment</button>
+                    </div>
+                </div>
+            </div> <!-- End of Step Panel 3 -->
+        </aside>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <footer class="app-footer">
+            <div class="status-group">
+                <span class="status-item">
+                    <strong>Active Tool:</strong>
+                    <span id="status-active-tool">Select / Move</span>
+                </span>
+                <span class="status-item">
+                    <strong>Scale:</strong>
+                    <span id="status-active-scale">1:100</span>
+                </span>
+            </div>
+            <div class="coordinate-display">
+                <span class="coord-indicator">X: <span id="coord-x">0.00</span></span>
+                <span class="coord-indicator">Y: <span id="coord-y">0.00</span></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- BOM & Cost Estimator Modal -->
+    <div id="bom-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📊 Bill of Quantities (BOM) & Local Cost Estimator</h2>
+                <button id="btn-close-bom" class="close-modal-btn" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">Estimated raw construction quantities based on total wall length and plot area, calibrated to standard Pakistani masonry benchmarks.</p>
+                
+                <!-- Stats Summary -->
+                <div class="bom-stats-summary">
+                    <div class="bom-stat-item">
+                        <span class="bom-stat-label">Total Wall Length:</span>
+                        <span id="bom-wall-length" class="bom-stat-val">0.00 ft</span>
+                    </div>
+                    <div class="bom-stat-item">
+                        <span class="bom-stat-label">Plot Footprint Area:</span>
+                        <span id="bom-footprint-area" class="bom-stat-val">0.00 sq ft</span>
+                    </div>
+                </div>
+
+                <!-- BOM Table -->
+                <table class="bom-table">
+                    <thead>
+                        <tr>
+                            <th>Material Item</th>
+                            <th>Pakistani Masonry Benchmark Formula</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Market Rate (PKR)</th>
+                            <th>Subtotal (PKR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="item-name">🧱 Bricks</td>
+                            <td class="item-formula">Wall Volume (CFT) &times; 13.5 bricks/CFT</td>
+                            <td><input type="number" id="bom-qty-bricks" class="table-rate-input" value="0" min="0"></td>
+                            <td class="item-unit">Pcs</td>
+                            <td><input type="number" id="rate-bricks" class="table-rate-input" value="15" min="0"></td>
+                            <td id="bom-total-bricks" class="item-subtotal">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="item-name">🥛 Cement Bags</td>
+                            <td class="item-formula">Wall Volume (CFT) &times; 0.05 bags/CFT</td>
+                            <td><input type="number" id="bom-qty-cement" class="table-rate-input" value="0" min="0" step="any"></td>
+                            <td class="item-unit">Bags</td>
+                            <td><input type="number" id="rate-cement" class="table-rate-input" value="1400" min="0"></td>
+                            <td id="bom-total-cement" class="item-subtotal">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="item-name">⏳ Sand (Ravi / Chenab)</td>
+                            <td class="item-formula">Wall Volume (CFT) &times; 0.25 CFT/CFT</td>
+                            <td><input type="number" id="bom-qty-sand" class="table-rate-input" value="0" min="0"></td>
+                            <td class="item-unit">CFT</td>
+                            <td><input type="number" id="rate-sand" class="table-rate-input" value="80" min="0"></td>
+                            <td id="bom-total-sand" class="item-subtotal">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="item-name">📐 Flooring / Tiles</td>
+                            <td class="item-formula">100% of calculated plot area</td>
+                            <td><input type="number" id="bom-qty-tiles" class="table-rate-input" value="0" min="0"></td>
+                            <td class="item-unit">Sq Ft</td>
+                            <td><input type="number" id="rate-tiles" class="table-rate-input" value="250" min="0"></td>
+                            <td id="bom-total-tiles" class="item-subtotal">0.00</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="5" class="total-label">Total Estimated Construction Cost:</td>
+                            <td id="bom-total-cost" class="total-val">0.00 PKR</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help & Documentation Modal -->
+    <div id="help-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>📖 System Documentation & Slides</h2>
+                <button id="btn-close-help" class="close-modal-btn" type="button">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0; display: flex; flex-direction: column; height: 550px;">
+                <!-- Tab Headers -->
+                <div class="tab-headers-row" style="display: flex; background-color: var(--bg-app); border-bottom: 1px solid var(--border-light);">
+                    <button class="doc-tab-btn active" data-tab="slides" style="flex: 1; padding: 12px; border: none; background: transparent; font-weight: 700; cursor: pointer; font-size: 0.85rem; border-bottom: 3px solid var(--primary-blue); color: var(--primary-blue);" type="button">
+                        🖥️ Slide Deck Presentation
+                    </button>
+                    <button class="doc-tab-btn" data-tab="guide" style="flex: 1; padding: 12px; border: none; background: transparent; font-weight: 600; cursor: pointer; font-size: 0.85rem; border-bottom: 3px solid transparent; color: var(--text-muted);" type="button">
+                        📄 User Manual (PDF Printable)
+                    </button>
+                    <button class="doc-tab-btn" data-tab="offline" style="flex: 1; padding: 12px; border: none; background: transparent; font-weight: 600; cursor: pointer; font-size: 0.85rem; border-bottom: 3px solid transparent; color: var(--text-muted);" type="button">
+                        💾 Offline PowerPoint & PDF
+                    </button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="tab-contents-container" style="flex: 1; overflow-y: auto; padding: 24px; position: relative;">
+                    
+                    <!-- Tab 1: Interactive Slideshow -->
+                    <div id="tab-slides" class="tab-pane active" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="slideshow-container" style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: var(--bg-app); border-radius: 8px; padding: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);">
+                            <!-- Active Slide Content Card -->
+                            <div id="active-slide-card" class="slide-card-view" style="width: 100%; max-width: 650px; background-color: white; border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; gap: 15px; min-height: 280px; justify-content: center;">
+                                <!-- Content will be injected dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- Slide Controls -->
+                        <div class="slide-controls-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <button id="btn-prev-slide" class="post-comment-btn" style="padding: 6px 15px; width: auto;" type="button">◀ Previous</button>
+                            <span id="slide-indicator" style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.9rem;">Slide 1 of 6</span>
+                            <button id="btn-next-slide" class="post-comment-btn" style="padding: 6px 15px; width: auto;" type="button">Next ▶</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: User Manual -->
+                    <div id="tab-guide" class="tab-pane" style="display: none; line-height: 1.5; color: var(--text-dark);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="font-family: 'Space Grotesk', sans-serif; color: var(--primary-blue); font-size: 1.1rem; font-weight: 700; margin: 0;">Plot Planner Pro User Manual</h3>
+                            <button onclick="window.print()" class="header-btn primary-btn" style="padding: 4px 10px; height: 28px;" type="button">🖨️ Print / Save as PDF</button>
+                        </div>
+                        <div class="manual-printable-content" style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 15px; height: 360px; overflow-y: auto; padding-right: 8px;">
+                            <div>
+                                <h4 style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; margin-top: 0;">1. Setting Up Plot Dimensions</h4>
+                                <p>To start planning, configure the plot boundaries using the right sidebar panel (Irregular Plot Math Engine):</p>
+                                <ul style="margin-left: 20px; margin-top: 4px;">
+                                    <li>Enter dimensions for Side A (Top), Side B (Right), Side C (Bottom), and Side D (Left).</li>
+                                    <li>Enter Diagonal E (from top-left corner to bottom-right corner) to calculate irregular shapes using Heron's Formula. If empty, the average method will estimate the area with a warning.</li>
+                                    <li>Set your local Marla standard (e.g. Lahore Urban 225 sq ft or Rural 272.25 sq ft) to automatically calculate the area in Kanals and Marlas.</li>
+                                    <li>Configure the active units via the **Measurement Unit** selector, supporting Feet (ft), Meters (m), and **Yards (Karachi Yard - sq yds / yds)**.</li>
+                                    <li>If you are in Islamabad, click the preset buttons (8 Marla or 1 Kanal) to automatically populate standard boundary dimensions.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; margin-top: 10px;">2. Canvas Drafting and Snap Controls</h4>
+                                <p>Draw walls and partition walls using the 2D drafting board:</p>
+                                <ul style="margin-left: 20px; margin-top: 4px;">
+                                    <li>Select <b>Draw Line</b> tool in the left toolbar.</li>
+                                    <li>Left-click on the canvas grid to start a line, move mouse to preview length, and click again to seal. Hold <b>Shift</b> while moving to force strictly horizontal or vertical walls.</li>
+                                    <li>The drafting board features smart snapping. Turn on <b>Grid Snapping</b> in the configuration settings to align wall corners automatically.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; margin-top: 10px;">3. Regulatory Setbacks & Pin Dropping</h4>
+                                <ul style="margin-left: 20px; margin-top: 4px;">
+                                    <li>Select your local municipal authority from the dropdown (LDA, CDA, RUDA, SBCA, PDA, or QDA) to display mandatory setbacks.</li>
+                                    <li>Standard statutory front/rear setbacks will draw as orange dashed guidelines on the canvas.</li>
+                                    <li>Select a pin tool (Water, Gas, or Electric) and click anywhere on the grid to tag utility connections on your plot.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; margin-top: 10px;">4. Running Microclimate Simulations</h4>
+                                <p>Use the <b>Geo-Energy & Microclimate</b> panel to simulate weather patterns and solar paths:</p>
+                                <ul style="margin-left: 20px; margin-top: 4px;">
+                                    <li>Check <b>Solar Path & Shadows</b> to view the sun's trajectory. Slide the <b>Time of Day</b> slider to watch shadows cast from plot boundaries and neighbors rotate in real-time.</li>
+                                    <li>Check <b>Animated Wind Vectors</b> and toggle seasons to see hot summer breezes (SW) or cool winter drafts (NE) animated across the canvas.</li>
+                                    <li>Check <b>Sound Pollution Gradient</b> to see traffic noise decay zones inside the plot.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; margin-top: 10px;">5. Estimating Construction Costs</h4>
+                                <ul style="margin-left: 20px; margin-top: 4px;">
+                                    <li>Click <b>BOM & Costs</b> in the header actions. Review the estimated bricks, cement bags, sand, and tiles.</li>
+                                    <li>Edit the unit rates in the pricing table to match local market rates and view the updated grand total.</li>
+                                    <li>Switch roles in the header and leave team comments or municipality annotations in the approvals log.</li>
+                                    <li>Click <b>Export Project</b> to save a backup JSON database file of your entire project.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Offline Files -->
+                    <div id="tab-offline" class="tab-pane" style="display: none; font-size: 0.85rem; color: var(--text-dark); line-height: 1.5;">
+                        <h3 style="font-family: 'Space Grotesk', sans-serif; color: var(--primary-blue); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; margin-top: 0;">💾 Offline PowerPoint & PDF Assets</h3>
+                        <p style="margin-bottom: 12px;">We have generated offline presentation and manual files directly in your local directory for easy sharing and presentation:</p>
+                        
+                        <div class="bom-stats-summary" style="flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                            <div>📂 <b>Files Generated inside your project folder:</b></div>
+                            <div style="font-family: monospace; padding-left: 12px; color: var(--primary-blue);">• Plot_Planner_Pro_Presentation.pptx (Native PowerPoint Slide Deck)</div>
+                            <div style="font-family: monospace; padding-left: 12px; color: var(--primary-blue);">• Plot_Planner_Pro_User_Guide.pdf (Printable PDF User Manual)</div>
+                        </div>
+                        
+                        <p style="margin-bottom: 12px;"><b>How to update or regenerate these files offline:</b></p>
+                        <ol style="margin-left: 20px;">
+                            <li>Open your terminal/command prompt in the project root directory.</li>
+                            <li>Run the generator script:
+                                <pre style="background: var(--bg-app); padding: 8px; border-radius: 6px; font-family: monospace; margin: 6px 0;">python generate_docs.py</pre>
+                            </li>
+                            <li>The script will automatically verify dependencies (`python-pptx`, `reportlab`) and output updated documents immediately.</li>
+                        </ol>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Setup via ES Modules Import Map -->
+    <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        window.THREE = THREE; // Expose globally for app.js loader
+        window.dispatchEvent(new Event('three-ready'));
+    </script>
+
+    <!-- Include Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
